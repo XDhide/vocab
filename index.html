@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Học từ vựng tiếng Anh</title>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/PapaParse/5.3.2/papaparse.min.js"></script>
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Setup Screen -->
+        <div id="setupScreen" class="card">
+            <div class="header">
+                <h1>🎓 Học từ vựng tiếng Anh</h1>
+                <p>Nhập link Google Sheet share (sheet 'Review' phải là sheet đầu tiên)</p>
+            </div>
+            
+            <div class="input-group">
+                <label for="sheetUrl">Link Google Sheet share:</label>
+                <input type="url" id="sheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing">
+            </div>
+            
+            <button class="btn" onclick="connectSheet()">Kết nối</button>
+            
+            <div id="setupError" class="error-list hidden">
+                <p>Vui lòng nhập link Google Sheet share hợp lệ!</p>
+            </div>
+        </div>
+
+        <!-- Main Menu -->
+        <div id="mainMenu" class="card hidden">
+            <div class="header">
+                <h1>🎓 Học từ vựng tiếng Anh</h1>
+                <p>Chọn chức năng bạn muốn sử dụng</p>
+            </div>
+            
+            <div class="menu-grid">
+                <div class="menu-item" onclick="showPracticeOptions()">
+                    <h3>📚 Ôn tập</h3>
+                    <p>Luyện tập từ vựng với nhiều dạng câu hỏi</p>
+                </div>
+                <div class="menu-item" onclick="showSettings()">
+                    <h3>⚙️ Cài đặt</h3>
+                    <p>Thay đổi link Google Sheet</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Practice Options -->
+        <div id="practiceOptions" class="card hidden">
+            <div class="header">
+                <h2>Chọn loại câu hỏi</h2>
+                <p>Bạn có thể chọn nhiều loại câu hỏi để luyện tập</p>
+            </div>
+            
+            <div class="checkbox-group">
+                <div class="checkbox-item">
+                    <input type="checkbox" id="multipleChoice" value="multipleChoice">
+                    <label for="multipleChoice">📝 Trắc nghiệm</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="fillBlank" value="fillBlank">
+                    <label for="fillBlank">✍️ Tự luận</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="listening" value="listening">
+                    <label for="listening">🎧 Nghe</label>
+                </div>
+                <div class="checkbox-item">
+                    <input type="checkbox" id="speaking" value="speaking">
+                    <label for="speaking">🎤 Nói</label>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="startPractice()">Bắt đầu làm bài</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">Quay lại</button>
+            </div>
+        </div>
+
+        <!-- Practice Screen -->
+        <div id="practiceScreen" class="card hidden">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            
+            <div class="question-container">
+                <div class="question">
+                    <p><strong>Câu <span id="questionNumber">1</span>/<span id="totalQuestions">10</span></strong></p>
+                    <p><strong>Loại:</strong> <span id="questionType">Trắc nghiệm</span></p>
+                    <h3 id="questionText">Câu hỏi sẽ hiện ở đây</h3>
+                    
+                    <!-- Multiple Choice Options -->
+                    <div id="multipleChoiceOptions" class="options">
+                        <div class="option" onclick="selectOption(0)">A. Đáp án 1</div>
+                        <div class="option" onclick="selectOption(1)">B. Đáp án 2</div>
+                        <div class="option" onclick="selectOption(2)">C. Đáp án 3</div>
+                        <div class="option" onclick="selectOption(3)">D. Đáp án 4</div>
+                    </div>
+                    
+                    <!-- Fill in the blank -->
+                    <div id="fillBlankInput" class="input-group hidden">
+                        <input type="text" id="userAnswer" placeholder="Nhập câu trả lời của bạn...">
+                    </div>
+                    
+                    <!-- Listening controls -->
+                    <div id="listeningControls" class="hidden">
+                        <button class="btn" onclick="playWord()">Phát âm thanh</button>
+                    </div>
+                    
+                    <!-- Speaking controls -->
+                    <div id="speakingControls" class="hidden">
+                        <button class="btn" id="startRecord" onclick="startRecording()">Bắt đầu ghi âm</button>
+                        <button class="btn btn-danger hidden" id="stopRecord" onclick="stopRecording()">Dừng ghi âm</button>
+                        <p id="speechFeedback" class="speech-feedback hidden"></p>
+                    </div>
+                </div>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="nextQuestion()">Câu tiếp theo</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">Dừng lại</button>
+            </div>
+        </div>
+
+        <!-- Results Screen -->
+        <div id="resultsScreen" class="card hidden">
+            <div class="header">
+                <h2>🎉 Kết quả làm bài</h2>
+            </div>
+            
+            <div class="results">
+                <p><strong>Tổng số câu:</strong> <span id="totalAnswered">0</span></p>
+                <p><strong>Số câu đúng:</strong> <span id="correctAnswers">0</span></p>
+                <p><strong>Số câu sai:</strong> <span id="wrongAnswers">0</span></p>
+                <p><strong>Điểm số:</strong> <span id="score">0</span>%</p>
+            </div>
+            
+            <div id="wrongWordsList" class="error-list hidden">
+                <h3>📝 Danh sách từ cần ôn lại:</h3>
+                <ul id="wrongWords"></ul>
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="showPracticeOptions()">Làm bài khác</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">Về menu chính</button>
+            </div>
+        </div>
+
+        <!-- Settings Screen -->
+        <div id="settingsScreen" class="card hidden">
+            <div class="header">
+                <h2>⚙️ Cài đặt</h2>
+            </div>
+            
+            <div class="input-group">
+                <label for="newSheetUrl">Link Google Sheet share mới:</label>
+                <input type="url" id="newSheetUrl" placeholder="https://docs.google.com/spreadsheets/d/.../edit?usp=sharing">
+            </div>
+            
+            <div style="text-align: center;">
+                <button class="btn" onclick="updateSheetUrl()">Cập nhật</button>
+                <button class="btn btn-secondary" onclick="showMainMenu()">Quay lại</button>
+            </div>
+        </div>
+    </div>
+
+    <script src="script.js"></script>
+</body>
+</html>
